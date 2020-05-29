@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="TRACE">
+	<Properties>
+		<!-- Log Pattern Properties -->
+		<Property name="log.pattern">%d{DEFAULT} | %-5.5p | %tid, %t | %c{1} | %X{user} | %X{code} | %X{resolution} | %m%n
+		</Property>
+		<Property name="log.dir">logs</Property>
+		<Property name="log.archive.dir">${log.dir}/logs-archive/</Property>
+		<Property name="log.date.format">%d{MM-dd-yyyy}</Property>
+		<Property name="log.filename.format">${log.date.format}.%i.gz</Property>
+
+		<!-- Log Rolling Properties -->
+		<Property name="rolling.size">100MB</Property>
+		<Property name="log.purge.age">90D</Property>
+		<Property name="log.purge.size">1GB</Property>
+		<Property name="log.path.max.depth">2</Property>
+
+		<!-- Log Filename Properties -->
+		<Property name="sample.appender">sample</Property>
+		<Property name="sample.log.file">${sample.appender}.log</Property>
+	</Properties>
+
+	<Appenders>
+		<RollingRandomAccessFile name="MyRollingRandomAccessFile"
+			fileName="${log.dir}/${sample.log.file}"
+			filePattern="${log.archive.dir}/${sample.appender}/${sample.log.file}.${log.filename.format}">
+			<PatternLayout pattern="${log.pattern}" />
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<SizeBasedTriggeringPolicy
+					size="${rolling.size}" />
+			</Policies>
+			<DefaultRolloverStrategy fileIndex="nomax">
+				<Delete basePath="${log.archive.dir}/${sample.appender}"
+					maxDepth="${log.path.max.depth}">
+					<IfFileName glob="${sample.log.file}.*">
+						<IfAny>
+							<IfLastModified age="${log.purge.age}" />
+							<IfAccumulatedFileSize
+								exceeds="${log.purge.size}" />
+						</IfAny>
+					</IfFileName>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
+	</Appenders>
+
+	<Loggers>
+		<AsyncLogger name="example" level="TRACE" additivity="false">
+			<AppenderRef ref="MyRollingRandomAccessFile" />
+		</AsyncLogger>
+		<Root level="TRACE">
+			<AppenderRef ref="MyRollingRandomAccessFile" />
+		</Root>
+	</Loggers>
+</Configuration>
